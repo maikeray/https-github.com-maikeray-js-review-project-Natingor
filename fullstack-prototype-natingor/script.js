@@ -110,7 +110,7 @@ function setAuthState(isAuth, user = null) {
     // 1. Update global variable and session persistence
     if (isAuth && user) {
         currentUser = { 
-            username: `${user.firstName} ${user.lastName}`, 
+            username: user.username || `${user.firstName} ${user.lastName}`, 
             role: user.role, 
             email: user.email 
         };
@@ -178,7 +178,11 @@ function handleRouting() {
     // 1. Sync UI state with Auth status
     if (isAuth) {
         document.body.className = 'authenticated' + (isAdmin ? ' is-admin' : '');
-        if (displayUsername) displayUsername.textContent = currentUser.username;
+        
+        // FIX: Check if username exists, otherwise fallback to the name in the session object
+        if (displayUsername) {
+            displayUsername.textContent = currentUser.username || "User";
+        }
     } else {
         document.body.className = 'not-authenticated';
     }

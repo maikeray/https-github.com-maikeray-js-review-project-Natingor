@@ -7,13 +7,12 @@ window.db = {
     employees: [],
     requests: []
 };
-// --- DATABASE INITIALIZATION ---
+// DATABASE INIT
 window.db = {
     accounts: JSON.parse(localStorage.getItem('users')) || [defaultAdmin]
 };
 
-// Helper to save DB to localStorage
-// Function to Save ALL data at once
+// SAVE DATA AT ONCE
 function saveToStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(window.db));
 }
@@ -378,6 +377,17 @@ function renderEmployees() {
     });
 }
 
+// FUNCTION PARA RENDER DROPDOWN DEPT
+function renderDeptDropdown() {
+    const deptSelect = document.getElementById('emp-dept');
+    if (!deptSelect) return;
+
+    const depts = window.db.departments || [];
+    
+    // This maps your window.db.departments array into HTML options
+    deptSelect.innerHTML = depts.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+}
+
 function handleSaveEmployee(e) {
     e.preventDefault();
     const email = document.getElementById('emp-email').value.trim();
@@ -526,10 +536,26 @@ function handleAddDeptAlert() {
 
 function handleSaveDept(e) {
     e.preventDefault();
-    let depts = JSON.parse(localStorage.getItem('departments')) || [];
-    const data = { name: document.getElementById('dept-name').value, description: document.getElementById('dept-desc').value };
-    if (editingDeptIndex > -1) depts[editingDeptIndex] = data; else depts.push(data);
-    localStorage.setItem('departments', JSON.stringify(depts)); toggleDeptForm(false); renderDepartments();
+    
+    // 1. Get values from the form
+    const name = document.getElementById('dept-name').value.trim();
+    const description = document.getElementById('dept-desc').value.trim();
+    const data = { name, description };
+
+    // 2. Save to our central window.db object
+    if (editingDeptIndex > -1) {
+        window.db.departments[editingDeptIndex] = data;
+    } else {
+        window.db.departments.push(data);
+    }
+
+    // 3. Save to the main localStorage key (ipt_demo_v1)
+    saveToStorage(); 
+    
+    // 4. Update the UI
+    toggleDeptForm(false);
+    renderDepartments();
+    showToast("Department saved successfully!", "success");
 }
 
 window.editDept = function(index) {

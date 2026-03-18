@@ -80,3 +80,52 @@ app.post('/api/login', async (req, res) => {
 });
 
 //
+app.get('/api/profile', authenticateToken, (req, res) => {
+    res.json({user: req.user});
+});
+
+//
+app.get('/api/admin/dashboard', authenticateToken, authorizeRole('admin'), (req, res) => {
+    res.json({message: 'Public content for all visitors'});
+});
+
+//
+app.get('/api/content/guest', (req, res) => {
+    res.json({message: 'Public content for all visitors' });
+});
+
+//
+
+//
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; //
+
+    if (!token) {
+        return res.status(401).json({error: 'Access token required'});
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Invalid or expired token'});
+        req.user = user;
+        next();
+    });
+}
+
+//
+function authorizeRole(role) {
+    return (req, res, next) => {
+        if (req.user.role !== role) {
+            return res.status(403).json({ error: 'Access denied: insufficient permission'});
+        }
+        next();
+    };
+}
+
+//
+app.listen(PORT, () => {
+    console.log('/ Backend running on http://localhost:${PORT}');
+    console.log(' / Try logging in with: ');
+    console.log('   - Admin: username=admin, password=admin123');
+    console.log('   -User: username=alice, password=user123');
+});
